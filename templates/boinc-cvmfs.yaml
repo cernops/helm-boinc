@@ -1,0 +1,93 @@
+{{- range .Values.priority }}
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PriorityClass
+metadata:
+  name: {{ .name }}
+value: {{ .value }}
+globalDefault: {{ .default | default false }}
+{{- end }}
+---
+{{- range .Values.cvmfs.repo }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-{{ . }}
+provisioner: csi-cvmfsplugin
+parameters:
+  repository: {{ . }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-{{ . }}
+spec:
+  accessModes:
+  - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: sc-{{ . }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: boinc-deployment
+  labels:
+    app: boinc
+spec:
+  selector:
+    matchLabels:
+      app: boinc
+  template:
+    metadata:
+      labels:
+        app: boinc
+    spec:
+      priorityClassName: {{ .Values.hpa.priority }}
+      containers:
+      - name: boinc
+        image: gitlab-registry.cern.ch/cloud/boinc-client
+        command: ["/bin/sleep", "1000000"]
+        env:
+        - name: BOINC_CMD_LINE_OPTIONS
+          value: "--attach_project https://lhcathome.cern.ch/lhcathome/ <account-key>"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+        volumeMounts:
+          {{- range .Values.cvmfs.repo }}
+          - mountPath: /cvmfs/{{ . }}.cern.ch
+            name: {{ . }}
+          {{- end }}
+#        securityContext:
+#          privileged: true
+#          allowPrivilegeEscalation: true
+      volumes:
+      {{- range .Values.cvmfs.repo }}
+      - name: {{ . }}
+        persistentVolumeClaim:
+          claimName: pvc-{{ . }}
+          readOnly: true
+      {{- end }}
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta1
+metadata:
+  name: boinc-hpa
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: boinc
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: {{ .Values.hpa.targetCPU }}
+

@@ -1,0 +1,15 @@
+priority:
+  - name: default-priority
+    value: 100000
+    default: true
+  - name: vlow-priority
+    value: 1000
+cvmfs:
+  repo:
+    - atlas
+    - atlas-condb
+hpa:
+  minReplicas: 1
+  maxReplicas: 10000000
+  targetCPU: 80
+  priority: vlow-priority
