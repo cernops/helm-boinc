@@ -15,6 +15,7 @@ metadata:
 provisioner: csi-cvmfsplugin
 parameters:
   repository: {{ . }}
+reclaimPolicy: Delete
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -32,7 +33,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: boinc-deployment
+  name: boinc
   labels:
     app: boinc
 spec:
@@ -76,11 +77,12 @@ spec:
       {{- end }}
 ---
 kind: HorizontalPodAutoscaler
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2beta2
 metadata:
   name: boinc-hpa
 spec:
   scaleTargetRef:
+    apiVersion: apps/v1
     kind: Deployment
     name: boinc
   minReplicas: {{ .Values.hpa.minReplicas }}
@@ -89,5 +91,7 @@ spec:
   - type: Resource
     resource:
       name: cpu
-      targetAverageUtilization: {{ .Values.hpa.targetCPU }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.targetCPU }}
 
