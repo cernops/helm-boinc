@@ -4,6 +4,10 @@
 boinc:
   project: https://lhcathome.cern.ch/lhcathome/
   accountKey: fill-this-with-your-own-account-uuid
+  # Resources for boinc pods. This depends on the type of jobs being run.
+  # These high number are currently for ATLAS jobs.
+  cpu: "6.5"
+  memory: "12G"
 
 # A set of predefined priorities for your cluster.
 # If you can drop if you already manage priorities yourself, otherwise this
@@ -14,14 +18,7 @@ priority:
     value: 100000
     default: true
   - name: vlow-priority
-    value: 1000
-
-# We need cvmfs available for ATLAS workloads, with these repos configuraed.
-cvmfs:
-  repo:
-    - atlas
-    - atlas-condb
-    - sft
+    value: 0
 
 # Boinc horizontal pod auto scaler configuration. The goal is to backfill the
 # cluster with boinc workloads, so we use an hpa resource with a very high
@@ -35,11 +32,12 @@ hpa:
   targetCPU: 80
   priority: vlow-priority
 
-# Resources for boinc pods. This depends on the type of jobs being run.
-# These high number are currently for ATLAS jobs.
-boinc:
-  cpu: "6.5"
-  memory: "12G"
+# We need cvmfs available for ATLAS workloads, with these repos configuraed.
+cvmfs:
+  repo:
+    - atlas
+    - atlas-condb
+    - sft
 
 # A sample deployment to see the pod auto scaling working nicely, it deploys
 # higher prio pods consuming a lot of cpu.
