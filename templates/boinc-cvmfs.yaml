@@ -49,17 +49,16 @@ spec:
       containers:
       - name: boinc
         image: gitlab-registry.cern.ch/cloud/boinc-client
-        command: ["/bin/sleep", "1000000"]
         env:
         - name: BOINC_CMD_LINE_OPTIONS
-          value: "--attach_project https://lhcathome.cern.ch/lhcathome/ <account-key>"
+          value: "--attach_project {{ .Values.boinc.project }} {{ .Values.boinc.accountKey }}"
         resources:
           limits:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: {{ .Values.boinc.cpu }}
+            memory: {{ .Values.boinc.memory }}
           requests:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: {{ .Values.boinc.cpu }}
+            memory: {{ .Values.boinc.memory }}
         volumeMounts:
           {{- range .Values.cvmfs.repo }}
           - mountPath: /cvmfs/{{ . }}.cern.ch
@@ -79,7 +78,7 @@ spec:
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2beta2
 metadata:
-  name: boinc-hpa
+  name: boinc
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
