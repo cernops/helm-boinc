@@ -5,8 +5,8 @@ metadata:
   name: {{ .name }}
 value: {{ .value }}
 globalDefault: {{ .default | default false }}
-{{- end }}
 ---
+{{- end }}
 {{- range .Values.cvmfs.repo }}
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -64,9 +64,6 @@ spec:
           - mountPath: /cvmfs/{{ . }}.cern.ch
             name: {{ . }}
           {{- end }}
-#        securityContext:
-#          privileged: true
-#          allowPrivilegeEscalation: true
       volumes:
       {{- range .Values.cvmfs.repo }}
       - name: {{ . }}
