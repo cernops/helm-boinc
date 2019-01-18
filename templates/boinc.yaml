@@ -48,17 +48,17 @@ spec:
       priorityClassName: {{ .Values.hpa.priority }}
       containers:
       - name: boinc
-        image: gitlab-registry.cern.ch/cloud/boinc-client
+        image: {{ .Values.boinc.image | default "boinc/client" }}
         env:
         - name: BOINC_CMD_LINE_OPTIONS
           value: "--attach_project {{ .Values.boinc.project }} {{ .Values.boinc.accountKey }}"
         resources:
-          limits:
-            cpu: {{ .Values.boinc.cpu }}
-            memory: {{ .Values.boinc.memory }}
           requests:
-            cpu: {{ .Values.boinc.cpu }}
-            memory: {{ .Values.boinc.memory }}
+            cpu: {{ .Values.boinc.requests.cpu }}
+            memory: {{ .Values.boinc.requests.memory }}
+          limits:
+            cpu: {{ .Values.boinc.limits.cpu }}
+            memory: {{ .Values.boinc.limits.memory }}
         volumeMounts:
           {{- range .Values.cvmfs.repo }}
           - mountPath: /cvmfs/{{ . }}.cern.ch

@@ -3,11 +3,19 @@
 # else than lhcathome.
 boinc:
   project: https://lhcathome.cern.ch/lhcathome/
+#  project: http://setiathome.berkeley.edu/
   accountKey: fill-this-with-your-own-account-uuid
+  requests:
+    cpu: "1000m"
+    memory: "64Mi"
+  limits:
+    cpu: "2000m"
+    memory: "64Mi"
+  # Uncomment the line below if running ATLAS jobs (SLC6 based client image)
+  # image: gitlab-registry.cern.ch/cloud/boinc-client
+  #
   # Resources for boinc pods. This depends on the type of jobs being run.
   # These high number are currently for ATLAS jobs.
-  cpu: "6.5"
-  memory: "12G"
 
 # A set of predefined priorities for your cluster.
 # If you can drop if you already manage priorities yourself, otherwise this
@@ -18,31 +26,31 @@ priority:
     value: 100000
     default: true
   - name: vlow-priority
-    value: 0
+    value: -100000
 
 # Boinc horizontal pod auto scaler configuration. The goal is to backfill the
 # cluster with boinc workloads, so we use an hpa resource with a very high
 # number of max replicas (max replicas is currently mandatory).
-# Set the targetCPU so that it won't fill the cluster completely, leaving
-# margin for preempting boinc pods while scaling up higher priority
-# applications.
+#
+# vlow-priority should be set to < -10, so that the cluster auto-scaler does
+# not take them into account.
 hpa:
   minReplicas: 1
   maxReplicas: 10000000
   targetCPU: 80
   priority: vlow-priority
 
-# We need cvmfs available for ATLAS workloads, with these repos configuraed.
+# We need cvmfs available for ATLAS workloads, with these repos configured.
 cvmfs:
   repo:
-    - atlas
-    - atlas-condb
-    - sft
+#    - atlas
+#    - atlas-condb
+#    - sft
 
 # A sample deployment to see the pod auto scaling working nicely, it deploys
 # higher prio pods consuming a lot of cpu.
 highpriodemo:
   enabled: true
   replicas: 1
-  cpu: "1"
-  memory: "1G"
+  cpu: "1000m"
+  memory: "256Mi"
